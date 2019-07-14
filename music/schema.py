@@ -72,16 +72,17 @@ class AlbumInput(graphene.InputObjectType):
     year = graphene.Int()
 
 
-class ArtistInput(graphene.InputObjectType):
-    id = graphene.ID()
-    albums = graphene.List(AlbumInput)
-    name = graphene.String()
+
 
 class SongInput(graphene.InputObjectType):
     title = graphene.String()
     albums = graphene.List(AlbumInput)
     
-
+class ArtistInput(graphene.InputObjectType):
+    id = graphene.ID()
+    albums = graphene.List(AlbumInput)
+    songs = graphene.List(SongInput)
+    name = graphene.String()
 
 
 class CreateAlbum(graphene.Mutation):  
@@ -138,16 +139,27 @@ class CreateArtist(graphene.Mutation):
     def mutate(root, info, input=None):
         ok = True
         albums = []
+        songs = []
         for album_input in input.album:
           album = Album.objects.get(pk=artist_input.id)
           if album is None:
             return CreateArtist(ok=False, movie=None)
           albums.append(artist)
+
+        for song_input in input.song:
+          song = Song.objects.get(pk=artist_input.id)
+          if song is None:
+            return CreateArtist(ok=False, movie=None)
+          songs.append(artist)
+        
+        
         artist_instance = Artist(
           name=input.name
           )
         artist_instance.save()
         artist_instance.albums.set(albums)
+        artist_instance.songs.set(songs)
+        
         return CreateArtist(ok=ok, artist=artist_instance)
 
 
@@ -166,13 +178,25 @@ class UpdateArtist(graphene.Mutation):
         if artist_instance:
             ok = True
             albums = []
+            songs = []
             for album_input in input.albums:
               album = Album.objects.get(pk=album_input.id)
               if album is None:
                 return UpdateArtist(ok=False, artist=None)
+
+
+            for song_input in input.songs:
+              song = Song.objects.get(pk=song_input.id)
+              if song is None:
+                return UpdateArtist(ok=False, artist=None)
+
+
+            
               albums.append(album)
+              songs.append(song)
             artist_instance.name=input.name.save()
             artist_instance.albums.set(albums)
+            artist_instance.songs.append(songs)
             return UpdateArtist(ok=ok, artist=artist_instance)
         return UpdateArtist(ok=ok, artist=None)
 

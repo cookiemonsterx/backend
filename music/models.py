@@ -13,19 +13,25 @@ class Album(models.Model):
         return self.title
 
 
+class Song(models.Model):
+    title = models.CharField(max_length=100)
+    album = models.ManyToManyField(Album)
+
+    def __str__(self):
+        return self.title
+
+
+
+
 
 class Artist(models.Model):
-    name = models.CharField(max_length=100, default= 'unknown')
-    album = models.ForeignKey(
-        Album, related_name='artist', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    album = models.ManyToManyField(Album)
+    song = models.ManyToManyField(Song)
+  
     
     def __str__(self):
         return self.name
 
 
-class Song(models.Model):
-    title = models.CharField(max_length=100)
-    album = models.ForeignKey(Album, related_name='song',on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.title
